@@ -1,10 +1,25 @@
-
 import Tkinter as tk
 import pygame
-
+import sys
+import math
+from pygame.locals import *
 
 LARGE_FONT= ("Verdana", 12)
 
+pygame.init()
+
+degree = 0
+turnSpeed = 0
+dx = math.cos(math.radians(degree))
+dy = math.sin(math.radians(degree))
+playGame = 1
+moveLeft = False
+moveRight = False
+moveUp = False
+moveDown = False
+windowWidth = 800
+windowHeight = 400
+rotRect = (360, 182)
 
 class Menu(tk.Tk):
 
@@ -25,9 +40,6 @@ class Menu(tk.Tk):
 
         global quitting
         quitting = tk.PhotoImage(file = "quit.gif")
-
-        global manual
-        manual = tk.PhotoImage(file = "manual.gif")
 
         global single
         single = tk.PhotoImage(file = "singlePlayer.gif")
@@ -110,21 +122,112 @@ def quit():
 def MGet():
     print ("Manual is:", Manual.get())
 
-##def MakeTrack():
-    
+def TurnLeft(turnSpeed):
+    if (turnSpeed < 0.6):
+        turnSpeed += 0.05
+    return turnSpeed
+
+def TurnRight(turnSpeed):
+    if (turnSpeed > -0.6):
+        turnSpeed -= 0.05
+    return turnSpeed
+
+def ResetTurnSpeed(turnSpeed):
+    if (turnSpeed > 0):
+        turnSpeed -= 0.05
+    if (turnSpeed < 0):
+        turnSpeed += 0.05
+    return turnSpeed
+
+def Checkpoints():
+    section1 = pygame.draw.rect(gameDisplay, (255, 255, 255), ( position[0] + 100, position[1] + 100, 1, 60))
+    return section1
+
+# rotates both the car and the square determining the box for detecting checkpoints
+def rotation(image, degree):
+    surf = pygame.Surface((100, 80))
+    rotatedImage = pygame.transform.rotate(image, degree)
+    blittedRect = gameDisplay.blit(surf, (355, 170))
+    oldCenter = blittedRect.center
+    rotatedSurf = pygame.transform.rotate(surf, degree)
+    rotRect = rotatedSurf.get_rect()
+    rotRect.center = oldCenter
+    return rotatedImage, rotRect
     
 menu = Menu()
 
-windowWidth = 800
-windowHeight = 400
+
 display = (windowWidth, windowHeight)
 
 # sets up the window for pygame
 gameDisplay = pygame.display.set_mode(display)
 
-playGame = 1
-while(playGame):
+# creates images for pygame
+grass = pygame.image.load("grass.png")
+car = pygame.image.load("car.gif").convert_alpha()
 
-    menu.mainloop()
-    MGet()
-##    gameDisplay.blit("grass.gif",
+##rotRect = pygame.Rect(360, 182, 82, 36)
+
+
+surf = pygame.Surface((100, 100))
+surf.fill((255,255,255))
+surf.set_colorkey((255,0,0))
+position = [100, 100]
+
+gameDisplay.blit(grass, (position[0] - dx -50, position[1] + dy - 50))
+gameDisplay.blit(car, (200, 200))
+while(playGame):
+    
+##    menu.mainloop()
+##    MGet()
+    
+    for event in pygame.event.get():
+        if event.type == KEYDOWN:
+            if event.key == K_LEFT or event.key == ord("a"):
+               moveLeft = True
+            if event.key == K_RIGHT or event.key == ord("d"):
+               moveRight = True
+            if event.key == K_UP or event.key == ord("w"):
+               moveUp = True
+            if event.key == K_DOWN or event.key == ord("s"):
+                moveDown = True
+        if event.type == KEYUP:
+            if event.key == K_LEFT or event.key == ord('a'):
+                moveLeft = False
+            if event.key == K_RIGHT or event.key == ord('d'):
+                moveRight = False
+            if event.key == K_UP or event.key == ord('w'):
+                moveUp = False
+            if event.key == K_DOWN or event.key == ord('s'):
+                moveDown = False
+                
+    if moveLeft or moveRight:
+        if moveLeft:
+            turnSpeed = TurnLeft(turnSpeed)
+            degree += turnSpeed
+            car2 = pygame.transform.rotate(car, degree)
+        if moveRight:
+            turnSpeed = TurnRight(turnSpeed)
+            degree += turnSpeed
+            car2 = pygame.transform.rotate(car, degree)
+
+    car2, rotRect = rotation(car, degree)
+
+    if (not moveLeft and  not moveRight):
+        turnSpeed = ResetTurnSpeed(turnSpeed)
+
+    dx = math.cos(math.radians(degree))
+    dy = math.sin(math.radians(degree))
+
+    if moveUp:
+        position = (position[0] + dx, position[1] - dy)
+
+    
+    
+    gameDisplay.blit(grass, (position[0] - dx - 100, position[1] + dy - 100))
+    section1 = Checkpoints()
+    if rotRect.colliderect(section1):
+        print "okay"
+    pygame.draw.rect(gameDisplay, (200, 200, 200), rotRect)
+    gameDisplay.blit(car2, (350, 170))
+    pygame.display.update()
