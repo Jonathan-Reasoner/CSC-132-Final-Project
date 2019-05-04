@@ -7,19 +7,23 @@ from pygame.locals import *
 LARGE_FONT= ("Verdana", 12)
 
 pygame.init()
+mainClock = pygame.time.Clock()
 
-degree = 0
-turnSpeed = 0
-dx = math.cos(math.radians(degree))
-dy = math.sin(math.radians(degree))
+degree = 0 # holds the rotation of the car
+dx = math.cos(math.radians(degree)) # used for moving the car on the track left and right
+dy = math.sin(math.radians(degree)) # used for moving the car on the track up and down
 playGame = 1
 moveLeft = False
 moveRight = False
 moveUp = False
 moveDown = False
-windowWidth = 800
-windowHeight = 400
-rotRect = (360, 182)
+windowWidth = 800 # how wide the window for the game will be
+windowHeight = 400 # how high the window for the game will be
+rotRect = (360, 182) # location of the rectangle for detecting checkpoints
+speed = 0.0 # what the car starts off accelerating at
+fps = [ 0, 30, 10, 60, 0]
+maxSpeed = 180 # how fast a car can go
+carSettings = [1, 0.5, 0] # 0-maximum turning, 1-turning increase over time, 2-how much the car is turning at the moment
 
 class Menu(tk.Tk):
 
@@ -123,12 +127,12 @@ def MGet():
     print ("Manual is:", Manual.get())
 
 def TurnLeft(turnSpeed):
-    if (turnSpeed < 0.6):
+    if (turnSpeed < 1.0):
         turnSpeed += 0.05
     return turnSpeed
 
 def TurnRight(turnSpeed):
-    if (turnSpeed > -0.6):
+    if (turnSpeed > -1.0):
         turnSpeed -= 0.05
     return turnSpeed
 
@@ -153,9 +157,24 @@ def rotation(image, degree):
     rotRect = rotatedSurf.get_rect()
     rotRect.center = oldCenter
     return rotatedImage, rotRect
+
+def framerate():
+    mainClock.tick(fps[1])
+    fps[2]=int(mainClock.get_fps())
+    if fps[0]==1:
+        text = smallFont.render('Set FPS - ' + str(fps[1]), True, WHITE,)
+        windowSurface.blit(text, (10,WINDOWHEIGHT-60))
+        text1 = smallFont.render('Current FPS - ' + str(fps[2]), True, WHITE,)
+        windowSurface.blit(text1, (10,WINDOWHEIGHT-40))
+        text2 = smallFont.render('Lowest FPS - ' + str(fps[3]), True, WHITE,)
+        windowSurface.blit(text2, (10,WINDOWHEIGHT-20))
+        if fps[2]<fps[3]:
+            fps[3]=fps[2]
+        if fps[2]>fps[4]:
+            fps[4]=fps[2]
+
     
 menu = Menu()
-
 
 display = (windowWidth, windowHeight)
 
@@ -167,7 +186,8 @@ grass = pygame.image.load("grass.png")
 car = pygame.image.load("car.gif").convert_alpha()
 
 ##rotRect = pygame.Rect(360, 182, 82, 36)
-
+# creates a variable for rotating the car image
+car2 = pygame.transform.rotate(car, degree)
 
 surf = pygame.Surface((100, 100))
 surf.fill((255,255,255))
@@ -182,6 +202,11 @@ while(playGame):
 ##    MGet()
     
     for event in pygame.event.get():
+        # checks for the player quitting pygame
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
+        # checks for the player pressing any keys
         if event.type == KEYDOWN:
             if event.key == K_LEFT or event.key == ord("a"):
                moveLeft = True
@@ -191,6 +216,7 @@ while(playGame):
                moveUp = True
             if event.key == K_DOWN or event.key == ord("s"):
                 moveDown = True
+        # checks for the player letting go of any keys
         if event.type == KEYUP:
             if event.key == K_LEFT or event.key == ord('a'):
                 moveLeft = False
@@ -201,33 +227,58 @@ while(playGame):
             if event.key == K_DOWN or event.key == ord('s'):
                 moveDown = False
                 
-    if moveLeft or moveRight:
-        if moveLeft:
-            turnSpeed = TurnLeft(turnSpeed)
-            degree += turnSpeed
-            car2 = pygame.transform.rotate(car, degree)
-        if moveRight:
-            turnSpeed = TurnRight(turnSpeed)
-            degree += turnSpeed
-            car2 = pygame.transform.rotate(car, degree)
+    
 
-    car2, rotRect = rotation(car, degree)
-
-    if (not moveLeft and  not moveRight):
-        turnSpeed = ResetTurnSpeed(turnSpeed)
-
-    dx = math.cos(math.radians(degree))
-    dy = math.sin(math.radians(degree))
-
+    # increases speed if the player is hitting the acceleration button
     if moveUp:
-        position = (position[0] + dx, position[1] - dy)
+        
+        if (speed < maxSpeed):
+            speed += 1
+            
+    # decreases speed if the player is not hitting the acceleration button button
+    else:
+        if (speed > 0):
+            speed -= 1
 
+    if moveDown:
+
+        if (speed > 0):
+            speed -= 1
+
+    # affects where the car moves based on angle and speed
+    dx = math.cos(math.radians(degree)) * speed / 10
+    dy = math.sin(math.radians(degree)) * speed / 10
+
+    # changes the cars position and rotation if it is moving
+    if (speed > 0):
+        if moveLeft or moveRight:
+            if moveLeft and not moveRight:
+                carSettings[2] = TurnLeft(carSettings[2])
+                degree += carSettings[2]
+                car2 = pygame.transform.rotate(car, degree)
+            if moveRight and not moveLeft:
+                carSettings[2] = TurnRight(carSettings[2])
+                degree += carSettings[2]
+                car2 = pygame.transform.rotate(car, degree)
+
+            elif moveRight and moveLeft:
+                degree += carSettings[2]
+                car2 = pygame.transform.rotate(car, degree)
+
+        car2, rotRect = rotation(car, degree)
+
+        if (not moveLeft and  not moveRight):
+            carSettings[2] = ResetTurnSpeed(carSettings[2])
+            degree += carSettings[2]
+            car2 = pygame.transform.rotate(car, degree)
+        position = (position[0] + dx, position[1] - dy)
     
     
     gameDisplay.blit(grass, (position[0] - dx - 100, position[1] + dy - 100))
     section1 = Checkpoints()
-    if rotRect.colliderect(section1):
-        print "okay"
-    pygame.draw.rect(gameDisplay, (200, 200, 200), rotRect)
+##    if rotRect.colliderect(section1):
+##        print "okay"
+##    pygame.draw.rect(gameDisplay, (200, 200, 200), rotRect)
     gameDisplay.blit(car2, (350, 170))
+    framerate()
     pygame.display.update()
