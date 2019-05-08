@@ -27,10 +27,10 @@ GameStart = "Standard"
 #
 ######################################################
 
-class Menu():
+class Menu(Tk):
 
     def __init__(self):
-        
+        Tk.__init__(self)
         container = Frame(self)
 
         container.pack(side="top", fill="both", expand = True)
@@ -149,7 +149,7 @@ class RacingModes(Frame):
 
 #quits Tkinter
 def getOut():
-    Menu.quitting()
+    menu.destroy()
     
 
 # gets the True/False value for manual
@@ -158,9 +158,12 @@ def MGet():
 
 #when standard is pressed, start pygame
 def startStandard():
+    global GameStart
     GameStart = "Standard"
+    pygame.init()
+    global screen
+    screen = pygame.display.set_mode(display)
     getOut()
-    return GameStart
 
 
 
@@ -171,17 +174,17 @@ def startStandard():
 #
 ######################################################
 
-while (GameStart == "Menu"):
-    root = Tk()
-    
-    menu = Menu(root)
-    
-    display = (windowWidth, windowHeight)
+##while (GameStart == "Menu"):
+##    root = Tk()
+##    
+##   
+##    
+##    display = (windowWidth, windowHeight)
+##
+##    playGame = 1
+##    while(playGame):
 
-    playGame = 1
-    while(playGame):
-
-        meun.mainloop()
+        
 
 #####################################################
 #
@@ -409,171 +412,183 @@ def checkpoints(x,y, timer2):
 #
 #####################################################
 
-while (GameStart == "Standard"):
+while( playGame):
 
-    #draws background and track
-    screen.fill(GREEN)
-    grassRect = drawBack(position[0],position[1])
-    Track = drawTrack(position[0]+dx, position[1]-dy)
-    maxSpeed = speedCheck(maxSpeed, boostPress)
-    
-    #uses while loop to alter milliseconds for timer bc it doesnt work in
-    #checkpoint function for some reason lmao
-    
-    if (timer2 < 1000):
-        timer2 += 1
-    if (timer2 == 1000):
-        timer2 = 0
+    menu = Menu()
+    while( GameStart == "Menu"):
+        menu.mainloop()
 
-    #draws checkpoints and blits timer
-    checkpoints(position[0]+dx, position[1]-dy, timer2)
+    while (GameStart == "Standard"):
+
+        #draws background and track
+        screen.fill(GREEN)
+        grassRect = drawBack(position[0],position[1])
+        Track = drawTrack(position[0]+dx, position[1]-dy)
+        maxSpeed = speedCheck(maxSpeed, boostPress)
+        
+        #uses while loop to alter milliseconds for timer bc it doesnt work in
+        #checkpoint function for some reason lmao
+        
+        if (timer2 < 1000):
+            timer2 += 1
+        if (timer2 == 1000):
+            timer2 = 0
+
+        #draws checkpoints and blits timer
+        checkpoints(position[0]+dx, position[1]-dy, timer2)
 
 
 
-    
-
-    #detects when a key has been pressed
-    for event in pygame.event.get():
-        if event.type == KEYDOWN:
-            if event.key == K_LEFT or event.key == ord("a"):
-               moveLeft = True
-            if event.key == K_RIGHT or event.key == ord("d"):
-               moveRight = True
-            if event.key == K_UP or event.key == ord("w"):
-               moveUp = True
-            if event.key == K_SPACE:
-                boostPress = True
-            if event.key == K_DOWN or event.key == ord("s"):
-                moveDown = True
-        if event.type == KEYUP:
-            if event.key == K_LEFT or event.key == ord('a'):
-                moveLeft = False
-            if event.key == K_RIGHT or event.key == ord('d'):
-                moveRight = False
-            if event.key == K_UP or event.key == ord('w'):
-                moveUp = False
-            if event.key == K_DOWN or event.key == ord('s'):
-                moveDown = False
-            if event.key == K_SPACE:
-                boostPress = False
-                
-    if moveLeft or moveRight:
-        if boostPress == False:
-            if moveLeft:
-                if speed > 0:
-                    degree += .7
-            if moveRight:
-                if speed > 0:
-                    degree -= .7
-        if boostPress == True:
-            if moveLeft:
-                if speed > 0:
-                    degree += 1.5
-            if moveRight:
-                if speed > 0:
-                    degree -= 1.5
         
 
+        #detects when a key has been pressed
+        for event in pygame.event.get():
 
-    if moveUp:
-        if (speed < maxSpeed):
-            if boostPress == False:
-                speed += .5
-            if boostPress == True:
-                speed += 1
-        if (speed > maxSpeed):
-            speed -= 1
+            if event.type == QUIT:
+                GameStart = "Menu"
+                pygame.quit()
+            if event.type == KEYDOWN:
+                if event.key == K_LEFT or event.key == ord("a"):
+                   moveLeft = True
+                if event.key == K_RIGHT or event.key == ord("d"):
+                   moveRight = True
+                if event.key == K_UP or event.key == ord("w"):
+                   moveUp = True
+                if event.key == K_SPACE:
+                    boostPress = True
+                if event.key == K_DOWN or event.key == ord("s"):
+                    moveDown = True
+            if event.type == KEYUP:
+                if event.key == K_LEFT or event.key == ord('a'):
+                    moveLeft = False
+                if event.key == K_RIGHT or event.key == ord('d'):
+                    moveRight = False
+                if event.key == K_UP or event.key == ord('w'):
+                    moveUp = False
+                if event.key == K_DOWN or event.key == ord('s'):
+                    moveDown = False
+                if event.key == K_SPACE:
+                    boostPress = False
+
+        if(GameStart == "Standard"):
+                    
+            if moveLeft or moveRight:
+                if boostPress == False:
+                    if moveLeft:
+                        if speed > 0:
+                            degree += .7
+                    if moveRight:
+                        if speed > 0:
+                            degree -= .7
+                if boostPress == True:
+                    if moveLeft:
+                        if speed > 0:
+                            degree += 1.5
+                    if moveRight:
+                        if speed > 0:
+                            degree -= 1.5
+                
+
+
+            if moveUp:
+                if (speed < maxSpeed):
+                    if boostPress == False:
+                        speed += .5
+                    if boostPress == True:
+                        speed += 1
+                if (speed > maxSpeed):
+                    speed -= 1
+
+                    
+                position = [position[0] + dx *(speed/75), position[1] - dy * (speed/75)]
+            else:
+                if (speed > 0):
+                    speed -= .5
+                position = [position[0] + dx *(speed/75), position[1] - dy * (speed/75)]
+               
+
+            if moveDown:
+                if (speed > 0):
+                    speed -= .10
+                position = [position[0] - dx, position[1] + dy]
+                
+            dx = math.cos(math.radians(degree))
+            dy = math.sin(math.radians(degree))
+            
+            where = playerSettings[0], playerSettings[1]
+            playerRotatedImage, rotRect, oldCenter, rotatedSurf = rotation(playerImage, where,degree)
+
+                
+            screen.blit(playerRotatedImage,rotRect)
+
+
+            #detects if checkpoints are touched to validate the lap
+            if rotRect.colliderect(section1):
+                checkpoint1 = True
+            if rotRect.colliderect(section2):
+                checkpoint2 = True
+                
+            # completes lap and recieves time if checkpoints have been touched
+            if (rotRect.colliderect(finishLine) and checkpoint1 == True and checkpoint2 == True):
+                laps += 1
+
+                finishSec= timerSecs - prevFinish
+                finishMilli= timer2 - prevFinish
+                finishTime = normalFont.render("Lap {} ~~ {}:{}".format(laps, finishSec, finishMilli), True, WHITE)
+                checkpoint1 = False
+                checkpoint2 = False
+                prevFinish = finishSec + prevFinish
+                prevFinishMilli = finishMilli + prevFinishMilli
 
             
-        position = [position[0] + dx *(speed/75), position[1] - dy * (speed/75)]
-    else:
-        if (speed > 0):
-            speed -= .5
-        position = [position[0] + dx *(speed/75), position[1] - dy * (speed/75)]
-       
+            #prints time statements for each lap
+            if laps == 0:
+                screen.blit(blankFinish1, (600, 250))
+                screen.blit(blankFinish2, (600, 275))
+                screen.blit(blankFinish3, (600, 300))
+                screen.blit(blankFinish4, (600, 325))
+                screen.blit(blankFinish5, (600, 350))
+                
+            if laps == 1:
+                lap1 = finishTime
+                screen.blit(lap1, (600, 250))
+                screen.blit(blankFinish2, (600, 275))
+                screen.blit(blankFinish3, (600, 300))
+                screen.blit(blankFinish4, (600, 325))
+                screen.blit(blankFinish5, (600, 350))
+                
+            if laps == 2:
+                lap2 = finishTime
+                screen.blit(lap1, (600, 250))
+                screen.blit(lap2, (600, 275))
+                screen.blit(blankFinish3, (600, 300))
+                screen.blit(blankFinish4, (600, 325))
+                screen.blit(blankFinish5, (600, 350))
+                
+            if laps == 3:
+                lap3 = finishTime
+                screen.blit(lap1, (600, 250))
+                screen.blit(lap2, (600, 275))
+                screen.blit(lap3, (600, 300))
+                screen.blit(blankFinish4, (600, 325))
+                screen.blit(blankFinish5, (600, 350))
+            if laps == 4:
+                lap4 = finishTime
+                screen.blit(lap1, (600, 250))
+                screen.blit(lap2, (600, 275))
+                screen.blit(lap3, (600, 300))
+                screen.blit(lap4, (600, 325))
+                screen.blit(blankFinish5, (600, 350))
+                
+            if laps == 5:
+                screen.blit(lap1, (600, 250))
+                screen.blit(lap2, (600, 275))
+                screen.blit(lap3, (600, 300))
+                screen.blit(lap4, (600, 325))
+                screen.blit(finishTime, (600, 350))
 
-    if moveDown:
-        if (speed > 0):
-            speed -= .10
-        position = [position[0] - dx, position[1] + dy]
-        
-    dx = math.cos(math.radians(degree))
-    dy = math.sin(math.radians(degree))
-    
-    where = playerSettings[0], playerSettings[1]
-    playerRotatedImage, rotRect, oldCenter, rotatedSurf = rotation(playerImage, where,degree)
-
-        
-    screen.blit(playerRotatedImage,rotRect)
-
-
-    #detects if checkpoints are touched to validate the lap
-    if rotRect.colliderect(section1):
-        checkpoint1 = True
-    if rotRect.colliderect(section2):
-        checkpoint2 = True
-        
-    # completes lap and recieves time if checkpoints have been touched
-    if (rotRect.colliderect(finishLine) and checkpoint1 == True and checkpoint2 == True):
-        laps += 1
-
-        finishSec= timerSecs - prevFinish
-        finishMilli= timer2 - prevFinish
-        finishTime = normalFont.render("Lap {} ~~ {}:{}".format(laps, finishSec, finishMilli), True, WHITE)
-        checkpoint1 = False
-        checkpoint2 = False
-        prevFinish = finishSec + prevFinish
-        prevFinishMilli = finishMilli + prevFinishMilli
-
-    
-    #prints time statements for each lap
-    if laps == 0:
-        screen.blit(blankFinish1, (600, 250))
-        screen.blit(blankFinish2, (600, 275))
-        screen.blit(blankFinish3, (600, 300))
-        screen.blit(blankFinish4, (600, 325))
-        screen.blit(blankFinish5, (600, 350))
-        
-    if laps == 1:
-        lap1 = finishTime
-        screen.blit(lap1, (600, 250))
-        screen.blit(blankFinish2, (600, 275))
-        screen.blit(blankFinish3, (600, 300))
-        screen.blit(blankFinish4, (600, 325))
-        screen.blit(blankFinish5, (600, 350))
-        
-    if laps == 2:
-        lap2 = finishTime
-        screen.blit(lap1, (600, 250))
-        screen.blit(lap2, (600, 275))
-        screen.blit(blankFinish3, (600, 300))
-        screen.blit(blankFinish4, (600, 325))
-        screen.blit(blankFinish5, (600, 350))
-        
-    if laps == 3:
-        lap3 = finishTime
-        screen.blit(lap1, (600, 250))
-        screen.blit(lap2, (600, 275))
-        screen.blit(lap3, (600, 300))
-        screen.blit(blankFinish4, (600, 325))
-        screen.blit(blankFinish5, (600, 350))
-    if laps == 4:
-        lap4 = finishTime
-        screen.blit(lap1, (600, 250))
-        screen.blit(lap2, (600, 275))
-        screen.blit(lap3, (600, 300))
-        screen.blit(lap4, (600, 325))
-        screen.blit(blankFinish5, (600, 350))
-        
-    if laps == 5:
-        screen.blit(lap1, (600, 250))
-        screen.blit(lap2, (600, 275))
-        screen.blit(lap3, (600, 300))
-        screen.blit(lap4, (600, 325))
-        screen.blit(finishTime, (600, 350))
-
-    speedBar = 100
-    pygame.draw.rect(screen, BLACK, (100, 100, 100, 800))
-    pygame.draw.rect(screen, RED, (100,100,100,speedBar))
-    
-    pygame.display.update()
+        ##    speedBar = 100
+        ##    pygame.draw.rect(screen, BLACK, (100, 100, 100, 800))
+        ##    pygame.draw.rect(screen, RED, (100,100,100,speedBar))
+            
+            pygame.display.update()
