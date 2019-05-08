@@ -7,7 +7,16 @@ import pygame
 import sys, time, random, math
 from pygame.locals import *
 from Tkinter import *
-
+##import RPi.GPIO as GPIO
+##GPIO.setmode(GPIO.BCM)
+##forward = 18
+##left = 19
+##right = 20
+##back = 21
+##GPIO.setup(forward, GPIO.IN, GPIO.PUD_DOWN)
+##GPIO.setup(left, GPIO.IN, GPIO.PUD_DOWN)
+##GPIO.setup(right, GPIO.IN, GPIO.PUD_DOWN)
+##GPIO.setup(back, GPIO.IN, GPIO.PUD_DOWN)
 
 ######################################################
 #
